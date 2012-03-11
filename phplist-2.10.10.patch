@@ -1,0 +1,229 @@
+diff -Naur phplist-2.10.10-orig/public_html/lists/admin/commonlib/lib/userlib.php phplist-2.10.10/public_html/lists/admin/commonlib/lib/userlib.php
+--- phplist-2.10.10-orig/public_html/lists/admin/commonlib/lib/userlib.php	2009-07-13 12:57:48.000000000 +1200
++++ phplist-2.10.10/public_html/lists/admin/commonlib/lib/userlib.php	2009-07-13 12:58:38.000000000 +1200
+@@ -417,7 +417,10 @@
+   return $result;
+ }
+ 
+-function is_email($email) {
++// wp-phplist 2.10.10 mod - because we repeat the "is_email" function in wordpress, we sneakily rename this one
++//function is_email($email) {
++function phplist_is_email($email) {
++// wp-phplist 2.10.10 mod complete
+ 
+   #@@ dont_require_validemail should be replaced by EMAIL_ADDRESS_VALIDATION_LEVEL
+   if (isset($GLOBALS['config']) && isset($GLOBALS["config"]["dont_require_validemail"]) && $GLOBALS["config"]["dont_require_validemail"])
+diff -Naur phplist-2.10.10-orig/public_html/lists/admin/processqueue.php phplist-2.10.10/public_html/lists/admin/processqueue.php
+--- phplist-2.10.10-orig/public_html/lists/admin/processqueue.php	2009-07-13 12:57:48.000000000 +1200
++++ phplist-2.10.10/public_html/lists/admin/processqueue.php	2009-07-13 12:58:38.000000000 +1200
+@@ -565,7 +565,11 @@
+ 
+       # pick the first one (rather historical)
+       $user = Sql_fetch_row($users);
+-      if ($user[5] && is_email($user[1])) {
++      // wp-phplist 2.10.10 modification - since we changed the name of this function, in userlib.php, we need to also change it here
++      // if ($user[5] && is_email($user[1])) {
++      if ($user[5] && phplist_is_email($user[1])) {
++      // wp-phplist 2.10.10 modification complete
++
+         $userid = $user[0];    # id of the user
+         $useremail = $user[1]; # email of the user
+         $userhash = $user[2];  # unique string of the user
+diff -Naur phplist-2.10.10-orig/public_html/lists/admin/subscribelib2.php phplist-2.10.10/public_html/lists/admin/subscribelib2.php
+--- phplist-2.10.10-orig/public_html/lists/admin/subscribelib2.php	2009-07-13 12:57:48.000000000 +1200
++++ phplist-2.10.10/public_html/lists/admin/subscribelib2.php	2009-07-13 12:58:38.000000000 +1200
+@@ -12,7 +12,10 @@
+ 
+ if (!$id && $_GET["page"] != "import1") {
+   Fatal_Error("Invalid call");
+-  exit;
++  // wp-phplist 2.10.10 mod (we can't exit here, since we still want to give a NICE error in WordPress)
++  //exit;
++  // wp-phplist 2.10.10 mod complete
++
+ }
+ require_once dirname(__FILE__)."/date.php";
+ $date = new Date();
+@@ -422,7 +425,9 @@
+     # they need to be "logged in" for this
+     if (empty($_SESSION['userloggedin'])) {
+       Fatal_Error("Access Denied");
+-      exit;
++  // wp-phplist 2.10.10 mod (we can't exit here, since we still want to give a NICE error in WordPress)
++  //exit;
++  // wp-phplist 2.10.10 mod complete
+     }
+     $checkpassword = '';
+     $allow = 0;
+@@ -441,7 +446,9 @@
+     if (!$allow) {
+       # @@@ this check should be done above, so the error can be embedded in the template
+       print $GLOBALS["strPasswordsNoMatch"];
+-      exit;
++  // wp-phplist 2.10.10 mod (we can't exit here, since we still want to give a NICE error in WordPress)
++  //exit;
++  // wp-phplist 2.10.10 mod complete
+     }
+   }
+ 
+@@ -454,7 +461,9 @@
+       <br/>This email already exists.
+       <br/>Please use the preferences URL for this email to make updates.
+       <br/>Click <a href=\"".getConfig("preferencesurl")."&email=$email\">here</a> to request your personal location");
+-      exit;
++  // wp-phplist 2.10.10 mod (we can't exit here, since we still want to give a NICE error in WordPress)
++  //exit;
++  // wp-phplist 2.10.10 mod complete
+     }
+   }
+   # read the current values to compare changes
+diff -Naur phplist-2.10.10-orig/public_html/lists/index.php phplist-2.10.10/public_html/lists/index.php
+--- phplist-2.10.10-orig/public_html/lists/index.php	2009-07-13 12:57:48.000000000 +1200
++++ phplist-2.10.10/public_html/lists/index.php	2009-07-13 12:58:38.000000000 +1200
+@@ -1,8 +1,9 @@
+ <?php
+ 
+-ob_start();
++// wp-phplist 2.10.10 mod start
++//ob_start();
++// wp-phplist 2.10.10 mod stop
+ $er = error_reporting(0); 
+-require_once dirname(__FILE__) .'/admin/commonlib/lib/unregister_globals.php';
+ require_once dirname(__FILE__) .'/admin/commonlib/lib/magic_quotes.php';
+ require_once dirname(__FILE__).'/admin/init.php';
+ ## none of our parameters can contain html for now
+@@ -17,6 +18,10 @@
+ } elseif (isset($_ENV["CONFIG"]) && is_file($_ENV["CONFIG"])) {
+ #  print '<!-- using '.$_ENV["CONFIG"].'-->'."\n";
+   include $_ENV["CONFIG"];
++ // wp-phplist 2.10.10 modification started
++} elseif (is_file(dirname(__FILE__)."/config/config.php")) {
++  include dirname(__FILE__)."/config/config.php";
++  // wp-phplist 2.10.10 modification completed
+ } elseif (is_file("config/config.php")) {
+ #  print '<!-- using config/config.php -->'."\n";
+   include "config/config.php";
+@@ -27,7 +32,11 @@
+ if (0) {#isset($GLOBALS["developer_email"]) && $GLOBALS['show_dev_errors']) {
+   error_reporting(E_ALL);
+ } else {
+-  error_reporting(0);
++  if (isset($error_level)) {
++    error_reporting($error_level);
++  } else {
++    error_reporting($er);
++  }
+ }
+ 
+ require_once dirname(__FILE__).'/admin/'.$GLOBALS["database_module"];
+@@ -203,20 +212,29 @@
+ } elseif (isset($_GET['p']) && preg_match("/(\w+)/",$_GET["p"],$regs)) {
+   if ($id) {
+     $data = PageData($id);
+-    if (isset($data['language_file']) && is_file(dirname(__FILE__).'/texts/'.basename($data['language_file']))) {
+-      @include dirname(__FILE__).'/texts/'.basename($data['language_file']);
+-      # Allow customisation per installation
+-      if (is_file($_SERVER['DOCUMENT_ROOT'].'/'.basename($data['language_file']))) {
+-        include_once $_SERVER['DOCUMENT_ROOT'].'/'.basename($data['language_file']);
+-      }
++    if (isset($data['language_file']) && is_file(dirname(__FILE__).'/texts/'.$data['language_file'])) {
++      @include dirname(__FILE__).'/texts/'.$data['language_file'];
++    }
++    # Allow customisation per installation
++    if (is_file($_SERVER['DOCUMENT_ROOT'].'/'.$data['language_file'])) {
++      include_once $_SERVER['DOCUMENT_ROOT'].'/'.$data['language_file'];
+     }
+     
+     switch ($_GET["p"]) {
+       case "subscribe":
+         $success = require "admin/subscribelib2.php";
+-        if ($success != 2) {
+-          print SubscribePage($id);
+-        }
++         // wp-phplist 2.10.10 mod started
++         $listsok = ((!ALLOW_NON_LIST_SUBSCRIBE && is_array($_POST["list"])) || ALLOW_NON_LIST_SUBSCRIBE);
++          if (isset($_POST["subscribe"]) && (is_email($_POST["email"])) && $listsok) {
++          // do nothing
++           } else {
++              print SubscribePage($id);
++           }
++                 
++        //if ($success != 2) {
++        //  print SubscribePage($id);
++        //}
++        // wp-phplist 2.10.10 mod complete
+         break;
+       case "preferences":
+         if (!isset($_GET["id"]) || !$_GET['id']) $_GET["id"] = $id;
+@@ -249,8 +267,8 @@
+   }
+ } else {
+   if ($id) $data = PageData($id);
+-  if (isset($data['language_file']) && is_file(dirname(__FILE__).'/texts/'.basename($data['language_file']))) {
+-    @include dirname(__FILE__).'/texts/'.basename($data['language_file']);
++  if (isset($data['language_file']) && is_file(dirname(__FILE__).'/texts/'.$data['language_file'])) {
++    @include dirname(__FILE__).'/texts/'.$data['language_file'];
+   }
+   print '<title>'.$GLOBALS["strSubscribeTitle"].'</title>';
+   print $data["header"];
+@@ -583,7 +601,6 @@
+   global $data, $tables;
+   $res = '<title>'.$GLOBALS["strUnsubscribeTitle"].'</title>'."\n";  
+   $res .= $data["header"];
+-
+   if (isset($_GET["uid"])) {
+     $req = Sql_Query("select * from $tables[user] where uniqid = \"".$_GET["uid"]."\"");
+     $userdata = Sql_Fetch_Array($req);
+@@ -593,25 +610,12 @@
+       $_POST["email"] = $email;
+       $_POST["unsubscribereason"] = '"Jump off" set, reason not requested';
+     }
+-  }
+-  else {
++  } else {
+     if (isset($_REQUEST['unsubscribeemail'])) {
+-       if (UNSUBSCRIBE_JUMPOFF) {
+-          $_POST["unsubscribe"] = 1;
+-          $_POST["unsubscribereason"] = '"Jump off" set, reason not requested';
+-       }
+-       $email = $_REQUEST['unsubscribeemail'];
+-    } 
+-    else {
+-       if (isset($_REQUEST['email'])) {
+-          if (UNSUBSCRIBE_JUMPOFF) {
+-             $_POST["unsubscribe"] = 1;
+-             $_POST["unsubscribereason"] = '"Jump off" set, reason not requested';
+-          }
+-          $email = $_REQUEST['email'];
+-       }
++      $email = $_REQUEST['unsubscribeemail'];
++    } else {
++      $email = $_REQUEST['email'];
+     }
+-
+     
+     #0013076: Blacklisting posibility for unknown users
+     # Set flag for blacklisting 
+@@ -623,10 +627,8 @@
+       $_POST["unsubscribereason"] = 'Forwarded receiver requested blacklist';
+     }
+   }
+-
+-  $unsubscribeemail = (isset($_REQUEST['unsubscribeemail']))?$_REQUEST['unsubscribeemail']:'';
+   
+-  if ( is_email($unsubscribeemail) && isset($_POST['unsubscribe']) && (isset($_REQUEST['email']) || isset($_REQUEST['unsubscribeemail'])) && isset($_POST['unsubscribereason'])) {
++  if ( is_email($_REQUEST['unsubscribeemail']) && isset($_POST['unsubscribe']) && (isset($_REQUEST['email']) || isset($_REQUEST['unsubscribeemail'])) && isset($_POST['unsubscribereason'])) {
+ 
+     #0013076: Blacklisting posibility for unknown users
+     if ( !$blacklist ) {
+@@ -875,8 +877,8 @@
+     $ok = false;
+   }
+   $data = PageData($id);
+-  if (isset($data['language_file']) && is_file(dirname(__FILE__).'/texts/'.basename($data['language_file']))) {
+-    @include dirname(__FILE__).'/texts/'.basename($data['language_file']);
++  if (isset($data['language_file']) && is_file(dirname(__FILE__).'/texts/'.$data['language_file'])) {
++    @include dirname(__FILE__).'/texts/'.$data['language_file'];
+   }
+ 
+ ## BAS Multiple Forward

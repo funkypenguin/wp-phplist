@@ -1,0 +1,81 @@
+== INTRODUCTION ==
+
+WP-PHPList is a Wordpress plugin for integrating a PHPList installation within
+your Wordpress blog, letting you add PHPList's powerful mailing list features
+to your blog, keeping your theme and URL path.
+
+WP-PHPList works by modifying a few critical files from PHPList 2.10.10 - it 
+makes hardly any changes to Wordpress, and so should be compatible with all 
+versions from 1.5 onwards. (Current version is 2.8.1)
+
+== TUTORIAL AND COMMENTS ==
+
+An updated tutorial (and discussion) is here:
+
+http://www.funkypenguin.co.nz/project/wp-phplist/
+
+
+== INSTALLATION ==
+
+Unpack the zipfile. The only two folders you need to be concerned with are
+"lists" (see Wordpress below) and "wp-phplist" (see PHPList below)
+
+
+=== PHPLIST ===
+
+Copy the "lists" subfolder into your EXISTING PHPList installation. You will 
+be OVERWRITING the following files:
+
+- lists/index.php
+- lists/admin/commonlib/lib/userlib.php
+- lists/admin/processqueue.php
+- lists/admin/subscribelib2.php
+
+WARNING - If you've made modifications to your PHPList installation, this 
+may overwrite those modifications, and BREAK IT. I've provided a diff
+(phplist-2.10.10.patch) incase you want to manually update PHPList.
+
+Make sure your PHPList installation is setup correctly, required path and
+URL configuration settings are correct, etc. Also, make sure that you have
+at least one list, else the plugin won't display.
+
+
+=== WORDPRESS ===
+
+Copy "wp-phplist" to your wp-content/plugins/ directory. Activate the plugin
+from your admin panel, then go to Options -> PHPList to configure it. Confirm
+or change the following settings:
+
+- Page slug: 
+    What you want PHPList to be accessible as, for example:
+    http://your.blog.com/newsletter
+
+- Subscribe page:
+    PHPList lets you define multiple subscribe pages, each requesting
+    different information from users, and making different lists available.
+    Enter the number of the subscribe page you want to use (default is 1),
+    or leave it blank to let PHPList prompt you.
+            
+- Page title:
+    The title Wordpress will display on PHPList's page.
+
+- Relative path to PHPList:
+    The path to your PHPList "lists" directory, relative to your Wordpress
+    root. By default the plugin assumes that the "lists" directory is a
+    subdirectory of your Wordpress install.
+
+== TEST WORDPRESS PAGE ==
+
+That's it. Go to http://yourblog/slug (you chose the slug above) and check that it works.
+
+Remember to change your subscribe / unsubscribe / confirmation URLs in PHPList to reflect the new path that your users will use (http://yourblog/slug/?p=confirm, for example).
+
+== CAVEATS ==
+
+We've "broken" the PHPList index file, which displays your subscribe pages, to make it fit into your blog. If you still want to use PHPList's interface as well as the interface within Wordpress, you'll probably want another (unaltered) copy of lists/index.php.
+
+Let's assume you call it "index_for_wordpress.php". Edit wp-content/plugins/wp-phplist/wp-phplist-page.php, look for "index.php", and change it to "index_for_wordpress.php" 
+
+For updated information / discussion, go to:
+
+http://www.funkypenguin.co.nz/project/wp-phplist/
